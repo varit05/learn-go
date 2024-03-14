@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
+
+	"learngo.varit.me/internal/data"
 )
 
 func (app *application) createMovieHandler(response http.ResponseWriter, r *http.Request) {
@@ -15,6 +18,23 @@ func (app *application) showMoviesHandler(showMoviesResponse http.ResponseWriter
 
 	if err != nil || id < 1 {
 		http.NotFound(showMoviesResponse, showMoviesRequest)
+		return
 	}
-	fmt.Fprintf(showMoviesResponse, "Show the details of movie %d\n", id)
+
+	movie := data.Movie{
+		ID:        id,
+		CreatedAt: time.Now(),
+		Title:     "Dark Night",
+		Runtime:   102,
+		Genres:    []string{"drama", "superhero"},
+		Version:   1,
+	}
+
+	err = app.writeJSON(showMoviesResponse, http.StatusOK, envelope{"movie": movie}, nil)
+
+	if err != nil {
+		app.logger.Print(err)
+		http.Error(showMoviesResponse, "Server could not process the response", http.StatusInternalServerError)
+		return
+	}
 }
